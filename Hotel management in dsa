@@ -1,0 +1,145 @@
+#include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ 
+ #define MAX_ROOMS 20
+ 
+ struct Room {
+     int roomNumber;
+     int isBooked;
+     char guestName[50];
+     struct Room* next; // Pointer to the next room (for linked list)
+ };
+ 
+ // Function to create a new room node
+ struct Room* createRoom(int roomNumber) {
+     struct Room* newRoom = (struct Room*)malloc(sizeof(struct Room));
+     newRoom->roomNumber = roomNumber;
+     newRoom->isBooked = 0;
+     strcpy(newRoom->guestName, "Not Booked");
+     newRoom->next = NULL;
+     return newRoom;
+ }
+ 
+ // Function to initialize the linked list with rooms
+ void initializeRooms(struct Room** head, int size) {
+     struct Room* temp = NULL;
+     for (int i = 0; i < size; i++) {
+         struct Room* newRoom = createRoom(i + 1);
+         if (*head == NULL) {
+             *head = newRoom; // First room
+         } else {
+             temp->next = newRoom; // Linking the previous room to the new one
+         }
+         temp = newRoom; // Move temp to the newly created room
+     }
+ }
+ 
+ // Function to display all rooms
+ void displayRooms(struct Room* head) {
+     printf("Room Number | Status     | Guest Name\n");
+     printf("******************************************\n");
+     struct Room* current = head;
+     while (current != NULL) {
+         printf("%-12d| %-11s| %s\n", current->roomNumber,
+                current->isBooked ? "Booked" : "Available",
+                current->isBooked ? current->guestName : "N/A");
+         current = current->next;
+     }
+ }
+ 
+ // Function to book a room
+ void bookRoom(struct Room* head) {
+     int roomNumber;
+     char guestName[50];
+     
+     printf("Enter room number to book (1 to %d): ", MAX_ROOMS);
+     scanf("%d", &roomNumber);
+     
+     struct Room* current = head;
+     while (current != NULL) {
+         if (current->roomNumber == roomNumber) {
+             if (current->isBooked) {
+                 printf("Room %d is already booked.\n", roomNumber);
+             } else {
+                 printf("Enter guest name: ");
+                 getchar();  // To consume the newline left by previous scanf
+                 fgets(guestName, 50, stdin);
+                 guestName[strcspn(guestName, "\n")] = 0;  // Remove newline character
+                 
+                 current->isBooked = 1;
+                 strcpy(current->guestName, guestName);
+                 printf("Room %d booked successfully for %s.\n", roomNumber, guestName);
+             }
+             return;
+         }
+         current = current->next;
+     }
+     printf("Room %d not found.\n", roomNumber);
+ }
+ 
+ // Function to check out from a room
+ void checkOut(struct Room* head) {
+     int roomNumber;
+     
+     printf("Enter room number to check out (1 to %d): ", MAX_ROOMS);
+     scanf("%d", &roomNumber);
+     
+     struct Room* current = head;
+     while (current != NULL) {
+         if (current->roomNumber == roomNumber) {
+             if (!current->isBooked) {
+                 printf("Room %d is not booked.\n", roomNumber);
+             } else {
+                 current->isBooked = 0;
+                 strcpy(current->guestName, "Not Booked");
+                 printf("Checked out from room %d successfully.\n", roomNumber);
+             }
+             return;
+         }
+         current = current->next;
+     }
+     printf("Room %d not found.\n", roomNumber);
+ }
+ 
+ int main() {
+     struct Room* rooms = NULL;  // Head of the linked list
+     int choice;
+     
+     initializeRooms(&rooms, MAX_ROOMS);
+     
+     while (1) {
+         printf("\n --- Hotel Management System ---\n");
+         printf("1. View all rooms\n");
+         printf("2. Book a room\n");
+         printf("3. Check out a room\n");
+         printf("4. Exit\n");
+         printf("Enter your choice: ");
+         scanf("%d", &choice);
+         
+         switch (choice) {
+             case 1:
+                 displayRooms(rooms);
+                 break;
+             case 2:
+                 bookRoom(rooms);
+                 break;
+             case 3:
+                 checkOut(rooms);
+                 break;
+             case 4:
+                 printf("Exiting the program. Thank you!\n");
+                 // Freeing the memory allocated for rooms
+                 while (rooms != NULL) {
+                     struct Room* temp = rooms;
+                     rooms = rooms->next;
+                     free(temp);
+                 }
+                 return 0;
+             default:
+                 printf("Invalid choice. Please try again.\n");
+         }
+     }
+     
+     return 0;
+ }
